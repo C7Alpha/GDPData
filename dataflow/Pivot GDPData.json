@@ -1,0 +1,61 @@
+{
+	"name": "Pivot GDPData",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "XL_Source_GDPData",
+						"type": "DatasetReference"
+					},
+					"name": "GDPData"
+				},
+				{
+					"dataset": {
+						"referenceName": "XL_Source_MappingData",
+						"type": "DatasetReference"
+					},
+					"name": "MappingData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "CSV_Dest_AU",
+						"type": "DatasetReference"
+					},
+					"name": "TempCSVAUSink"
+				},
+				{
+					"dataset": {
+						"referenceName": "CSV_Dest_Others",
+						"type": "DatasetReference"
+					},
+					"name": "TempCSVOthersSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "UnpivotPeriod"
+				},
+				{
+					"name": "GDPMapping"
+				},
+				{
+					"name": "ConditionalSplit1"
+				},
+				{
+					"name": "SortGDPDesc"
+				},
+				{
+					"name": "SortOthersDesc"
+				},
+				{
+					"name": "RemoveNullCountryCode"
+				}
+			],
+			"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as integer,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nRemoveNullCountryCode split({Country Name} == 'Australia',\n\tdisjoint: false) ~> ConditionalSplit1@(Australia, Others)\nConditionalSplit1@Australia sort(desc(GDP, false)) ~> SortGDPDesc\nConditionalSplit1@Others sort(desc(GDP, false)) ~> SortOthersDesc\nGDPMapping filter(!isNull(Region)) ~> RemoveNullCountryCode\nSortGDPDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['AUOnly.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> TempCSVAUSink\nSortOthersDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['Others.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> TempCSVOthersSink"
+		}
+	}
+}

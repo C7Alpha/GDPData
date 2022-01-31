@@ -1,0 +1,9 @@
+{
+	"name": "GDPData",
+	"location": "southeastasia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7df2f8e7-3eeb-44fb-8689-c445b266c7d0",
+		"tenantId": "07cc872f-b6e3-487f-834e-25eb4f34ddad"
+	}
+}

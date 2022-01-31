@@ -1,0 +1,92 @@
+{
+	"name": "XL_Source_GDPData",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Blob_GDPData",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "GDP Data",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "GDP Data.xlsx",
+				"folderPath": "GDPData",
+				"container": "conc7a"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "Country Name",
+				"type": "String"
+			},
+			{
+				"name": "Indicator Name",
+				"type": "String"
+			},
+			{
+				"name": "2002",
+				"type": "String"
+			},
+			{
+				"name": "2003",
+				"type": "String"
+			},
+			{
+				"name": "2004",
+				"type": "String"
+			},
+			{
+				"name": "2005",
+				"type": "String"
+			},
+			{
+				"name": "2006",
+				"type": "String"
+			},
+			{
+				"name": "2007",
+				"type": "String"
+			},
+			{
+				"name": "2008",
+				"type": "String"
+			},
+			{
+				"name": "2009",
+				"type": "String"
+			},
+			{
+				"name": "2010",
+				"type": "String"
+			},
+			{
+				"name": "2011",
+				"type": "String"
+			},
+			{
+				"name": "2012",
+				"type": "String"
+			},
+			{
+				"name": "2013",
+				"type": "String"
+			},
+			{
+				"name": "2014",
+				"type": "String"
+			},
+			{
+				"name": "2015",
+				"type": "String"
+			},
+			{
+				"name": "2016",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
