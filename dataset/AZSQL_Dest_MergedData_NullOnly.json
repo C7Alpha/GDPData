@@ -1,0 +1,51 @@
+{
+	"name": "AZSQL_Dest_MergedData_NullOnly",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AZSQL_GDPData",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Country Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Indicator Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Period",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GDP",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Country Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Region",
+				"type": "nvarchar"
+			},
+			{
+				"name": "IncomeGroup",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SpecialNotes",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Data2_GDPData_Merged_NullOnly"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
