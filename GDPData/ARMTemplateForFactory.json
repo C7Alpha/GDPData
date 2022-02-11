@@ -1,0 +1,1023 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "GDPData"
+		},
+		"ls_AZSQL_GDPData_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_AZSQL_GDPData'"
+		},
+		"ls_Blob_GDPData_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_Blob_GDPData'"
+		},
+		"ls_DataLakeGen2_GDPData_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_DataLakeGen2_GDPData'"
+		},
+		"ls_DataLakeGen2_GDPData_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sac7a.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Run Pivot GDPData",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Pivot GDPData",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GDPData": {},
+									"MappingData": {},
+									"TempCSVAUSink": {},
+									"TempCSVOthersSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-27T09:49:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Pivot GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Split by IncomeGroup Sink",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Split by IncomeGroup",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GDPData": {},
+									"MappingData": {},
+									"LowIncomeSink": {},
+									"LowMidIncomeSink": {},
+									"UpperMidIncomeSink": {},
+									"HighIncomeSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-28T07:53:40Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Split by IncomeGroup')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline3')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Generate MergedData",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Get MergedData",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GDPData": {},
+									"MappingData": {},
+									"GDPMerged": {},
+									"GDPMergedNullOnly": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-01-28T09:03:28Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Get MergedData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline4')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Output to Parquet",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Pivot GDPData to Parquet",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GDPData": {},
+									"MappingData": {},
+									"TempCSVAUSink": {},
+									"TempCSVOthersSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Pivot GDPData to Parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AZSQL_Dest_MergedData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AZSQL_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Country Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Indicator Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Period",
+						"type": "nvarchar"
+					},
+					{
+						"name": "GDP",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Country Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Region",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IncomeGroup",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SpecialNotes",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Data2_GDPData_Merged"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_AZSQL_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AZSQL_Dest_MergedData_NullOnly')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AZSQL_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Country Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Indicator Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Period",
+						"type": "nvarchar"
+					},
+					{
+						"name": "GDP",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "Country Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Region",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IncomeGroup",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SpecialNotes",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Data2_GDPData_Merged_NullOnly"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_AZSQL_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_AU')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_HighIncome')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_LowIncome')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_LowMidIncome')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_Others')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Dest_UpperMidIncome')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PQ_Dest_AU')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_DataLakeGen2_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "synfsplm"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_DataLakeGen2_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PQ_Dest_Others')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_DataLakeGen2_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "synfsplm"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_DataLakeGen2_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/XL_Source_GDPData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "GDP Data",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "GDP Data.xlsx",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "Country Name",
+						"type": "String"
+					},
+					{
+						"name": "Indicator Name",
+						"type": "String"
+					},
+					{
+						"name": "2002",
+						"type": "String"
+					},
+					{
+						"name": "2003",
+						"type": "String"
+					},
+					{
+						"name": "2004",
+						"type": "String"
+					},
+					{
+						"name": "2005",
+						"type": "String"
+					},
+					{
+						"name": "2006",
+						"type": "String"
+					},
+					{
+						"name": "2007",
+						"type": "String"
+					},
+					{
+						"name": "2008",
+						"type": "String"
+					},
+					{
+						"name": "2009",
+						"type": "String"
+					},
+					{
+						"name": "2010",
+						"type": "String"
+					},
+					{
+						"name": "2011",
+						"type": "String"
+					},
+					{
+						"name": "2012",
+						"type": "String"
+					},
+					{
+						"name": "2013",
+						"type": "String"
+					},
+					{
+						"name": "2014",
+						"type": "String"
+					},
+					{
+						"name": "2015",
+						"type": "String"
+					},
+					{
+						"name": "2016",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/XL_Source_MappingData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_Blob_GDPData",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "Mapping Data",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "GDP Data.xlsx",
+						"folderPath": "GDPData",
+						"container": "conc7a"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "TableName",
+						"type": "String"
+					},
+					{
+						"name": "Country Code",
+						"type": "String"
+					},
+					{
+						"name": "Region",
+						"type": "String"
+					},
+					{
+						"name": "IncomeGroup",
+						"type": "String"
+					},
+					{
+						"name": "SpecialNotes",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_Blob_GDPData')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_AZSQL_GDPData')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_AZSQL_GDPData_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_Blob_GDPData')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_Blob_GDPData_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_DataLakeGen2_GDPData')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_DataLakeGen2_GDPData_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_DataLakeGen2_GDPData_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Get MergedData')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "XL_Source_GDPData",
+								"type": "DatasetReference"
+							},
+							"name": "GDPData"
+						},
+						{
+							"dataset": {
+								"referenceName": "XL_Source_MappingData",
+								"type": "DatasetReference"
+							},
+							"name": "MappingData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AZSQL_Dest_MergedData",
+								"type": "DatasetReference"
+							},
+							"name": "GDPMerged"
+						},
+						{
+							"dataset": {
+								"referenceName": "AZSQL_Dest_MergedData_NullOnly",
+								"type": "DatasetReference"
+							},
+							"name": "GDPMergedNullOnly"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UnpivotPeriod"
+						},
+						{
+							"name": "GDPMapping"
+						},
+						{
+							"name": "ConditionalSplit1"
+						}
+					],
+					"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as string,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: ['2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nGDPMapping split(!isNull(Region),\n\tdisjoint: false) ~> ConditionalSplit1@(RemoveNullCountryCode, Others)\nConditionalSplit1@RemoveNullCountryCode sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\tPeriod as string,\n\t\tGDP as double,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> GDPMerged\nConditionalSplit1@Others sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\tPeriod as string,\n\t\tGDP as double,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> GDPMergedNullOnly"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/XL_Source_GDPData')]",
+				"[concat(variables('factoryId'), '/datasets/XL_Source_MappingData')]",
+				"[concat(variables('factoryId'), '/datasets/AZSQL_Dest_MergedData')]",
+				"[concat(variables('factoryId'), '/datasets/AZSQL_Dest_MergedData_NullOnly')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Pivot GDPData to Parquet')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "XL_Source_GDPData",
+								"type": "DatasetReference"
+							},
+							"name": "GDPData"
+						},
+						{
+							"dataset": {
+								"referenceName": "XL_Source_MappingData",
+								"type": "DatasetReference"
+							},
+							"name": "MappingData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "PQ_Dest_AU",
+								"type": "DatasetReference"
+							},
+							"name": "TempCSVAUSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "PQ_Dest_Others",
+								"type": "DatasetReference"
+							},
+							"name": "TempCSVOthersSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UnpivotPeriod"
+						},
+						{
+							"name": "GDPMapping"
+						},
+						{
+							"name": "ConditionalSplit1"
+						},
+						{
+							"name": "SortGDPDesc"
+						},
+						{
+							"name": "SortOthersDesc"
+						},
+						{
+							"name": "RemoveNullCountryCode"
+						}
+					],
+					"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as integer,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nRemoveNullCountryCode split({Country Name} == 'Australia',\n\tdisjoint: false) ~> ConditionalSplit1@(Australia, Others)\nConditionalSplit1@Australia sort(desc(GDP, false)) ~> SortGDPDesc\nConditionalSplit1@Others sort(desc(GDP, false)) ~> SortOthersDesc\nGDPMapping filter(!isNull(Region)) ~> RemoveNullCountryCode\nSortGDPDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionFileNames:['AUOnly.parquet'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tCountryName = {Country Name},\n\t\tIndicatorName = {Indicator Name},\n\t\tPeriod,\n\t\tGDP,\n\t\tTableName,\n\t\tCountryCode = {Country Code},\n\t\tRegion,\n\t\tIncomeGroup,\n\t\tSpecialNotes\n\t),\n\tpartitionBy('hash', 1)) ~> TempCSVAUSink\nSortOthersDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionFileNames:['Others.parquet'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tCountryName = {Country Name},\n\t\tIndicatorName = {Indicator Name},\n\t\tPeriod,\n\t\tGDP,\n\t\tTableName,\n\t\tCountryCode = {Country Code},\n\t\tRegion,\n\t\tIncomeGroup,\n\t\tSpecialNotes\n\t),\n\tpartitionBy('hash', 1)) ~> TempCSVOthersSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/XL_Source_GDPData')]",
+				"[concat(variables('factoryId'), '/datasets/XL_Source_MappingData')]",
+				"[concat(variables('factoryId'), '/datasets/PQ_Dest_AU')]",
+				"[concat(variables('factoryId'), '/datasets/PQ_Dest_Others')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Pivot GDPData')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "XL_Source_GDPData",
+								"type": "DatasetReference"
+							},
+							"name": "GDPData"
+						},
+						{
+							"dataset": {
+								"referenceName": "XL_Source_MappingData",
+								"type": "DatasetReference"
+							},
+							"name": "MappingData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_AU",
+								"type": "DatasetReference"
+							},
+							"name": "TempCSVAUSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_Others",
+								"type": "DatasetReference"
+							},
+							"name": "TempCSVOthersSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UnpivotPeriod"
+						},
+						{
+							"name": "GDPMapping"
+						},
+						{
+							"name": "ConditionalSplit1"
+						},
+						{
+							"name": "SortGDPDesc"
+						},
+						{
+							"name": "SortOthersDesc"
+						},
+						{
+							"name": "RemoveNullCountryCode"
+						}
+					],
+					"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as integer,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nRemoveNullCountryCode split({Country Name} == 'Australia',\n\tdisjoint: false) ~> ConditionalSplit1@(Australia, Others)\nConditionalSplit1@Australia sort(desc(GDP, false)) ~> SortGDPDesc\nConditionalSplit1@Others sort(desc(GDP, false)) ~> SortOthersDesc\nGDPMapping filter(!isNull(Region)) ~> RemoveNullCountryCode\nSortGDPDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['AUOnly.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> TempCSVAUSink\nSortOthersDesc sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['Others.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> TempCSVOthersSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/XL_Source_GDPData')]",
+				"[concat(variables('factoryId'), '/datasets/XL_Source_MappingData')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_AU')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_Others')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Split by IncomeGroup')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "XL_Source_GDPData",
+								"type": "DatasetReference"
+							},
+							"name": "GDPData"
+						},
+						{
+							"dataset": {
+								"referenceName": "XL_Source_MappingData",
+								"type": "DatasetReference"
+							},
+							"name": "MappingData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_LowIncome",
+								"type": "DatasetReference"
+							},
+							"name": "LowIncomeSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_LowMidIncome",
+								"type": "DatasetReference"
+							},
+							"name": "LowMidIncomeSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_UpperMidIncome",
+								"type": "DatasetReference"
+							},
+							"name": "UpperMidIncomeSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "CSV_Dest_HighIncome",
+								"type": "DatasetReference"
+							},
+							"name": "HighIncomeSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UnpivotPeriod"
+						},
+						{
+							"name": "GDPMapping"
+						},
+						{
+							"name": "RemoveNullCountryCode"
+						},
+						{
+							"name": "SplitByIncomeGroup"
+						}
+					],
+					"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as integer,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nGDPMapping filter(!isNull(Region)) ~> RemoveNullCountryCode\nRemoveNullCountryCode split(IncomeGroup=='Low income',\n\tIncomeGroup=='Lower middle income',\n\tIncomeGroup=='Upper middle income',\n\tIncomeGroup=='High income',\n\tdisjoint: false) ~> SplitByIncomeGroup@(LowIncome, LowMidIncome, UpperMidIncome, HighIncome, Others)\nSplitByIncomeGroup@LowIncome sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['LowIncome.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> LowIncomeSink\nSplitByIncomeGroup@LowMidIncome sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['LowMidIncome.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> LowMidIncomeSink\nSplitByIncomeGroup@UpperMidIncome sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['UpperMidIncome.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> UpperMidIncomeSink\nSplitByIncomeGroup@HighIncome sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['HighIncome.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> HighIncomeSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/XL_Source_GDPData')]",
+				"[concat(variables('factoryId'), '/datasets/XL_Source_MappingData')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_LowIncome')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_LowMidIncome')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_UpperMidIncome')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_Dest_HighIncome')]"
+			]
+		}
+	]
+}
