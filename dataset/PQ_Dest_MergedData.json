@@ -1,0 +1,19 @@
+{
+	"name": "PQ_Dest_MergedData",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_DataLakeGen2_GDPData",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "synfsplm"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

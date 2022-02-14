@@ -1,0 +1,52 @@
+{
+	"name": "Get MergedData to Parquet",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "XL_Source_GDPData",
+						"type": "DatasetReference"
+					},
+					"name": "GDPData"
+				},
+				{
+					"dataset": {
+						"referenceName": "XL_Source_MappingData",
+						"type": "DatasetReference"
+					},
+					"name": "MappingData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "PQ_Dest_MergedData",
+						"type": "DatasetReference"
+					},
+					"name": "PQDestMergedData"
+				},
+				{
+					"dataset": {
+						"referenceName": "PQ_Dest_MergedData_NullOnly",
+						"type": "DatasetReference"
+					},
+					"name": "PQDestMergedNullOnly"
+				}
+			],
+			"transformations": [
+				{
+					"name": "UnpivotPeriod"
+				},
+				{
+					"name": "GDPMapping"
+				},
+				{
+					"name": "ConditionalSplit1"
+				}
+			],
+			"script": "source(output(\n\t\t{Country Name} as string,\n\t\t{Indicator Name} as string,\n\t\t{2002} as float '###.##',\n\t\t{2003} as float '###.##',\n\t\t{2004} as float '###.##',\n\t\t{2005} as float '###.##',\n\t\t{2006} as float '###.##',\n\t\t{2007} as float '###.##',\n\t\t{2008} as float '###.##',\n\t\t{2009} as float '###.##',\n\t\t{2010} as float '###.##',\n\t\t{2011} as float '###.##',\n\t\t{2012} as float '###.##',\n\t\t{2013} as float '###.##',\n\t\t{2014} as float '###.##',\n\t\t{2015} as float '###.##',\n\t\t{2016} as float '###.##'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GDPData\nsource(output(\n\t\tTableName as string,\n\t\t{Country Code} as string,\n\t\tRegion as string,\n\t\tIncomeGroup as string,\n\t\tSpecialNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MappingData\nGDPData unpivot(output(\n\t\tPeriod as string,\n\t\tGDP as float\n\t),\n\tungroupBy({Country Name},\n\t\t{Indicator Name}),\n\tpivotValues: ['2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016'],\n\tlateral: false,\n\tignoreNullPivots: false) ~> UnpivotPeriod\nUnpivotPeriod, MappingData join({Country Name} == TableName,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> GDPMapping\nGDPMapping split(!isNull(Region),\n\tdisjoint: false) ~> ConditionalSplit1@(RemoveNullCountryCode, Others)\nConditionalSplit1@RemoveNullCountryCode sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionFileNames:['MergedData.parquet'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tCountryName = {Country Name},\n\t\tIndicatorName = {Indicator Name},\n\t\tPeriod,\n\t\tGDP,\n\t\tTableName,\n\t\tCountryCode = {Country Code},\n\t\tRegion,\n\t\tIncomeGroup,\n\t\tSpecialNotes\n\t),\n\tpartitionBy('hash', 1)) ~> PQDestMergedData\nConditionalSplit1@Others sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionFileNames:['MergedDataNullOnly.parquet'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tCountryName = {Country Name},\n\t\tIndicatorName = {Indicator Name},\n\t\tPeriod,\n\t\tGDP,\n\t\tTableName,\n\t\tCountryCode = {Country Code},\n\t\tRegion,\n\t\tIncomeGroup,\n\t\tSpecialNotes\n\t),\n\tpartitionBy('hash', 1)) ~> PQDestMergedNullOnly"
+		}
+	}
+}
